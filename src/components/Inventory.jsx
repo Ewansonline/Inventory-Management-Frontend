@@ -4,6 +4,7 @@ import API from '../api';
 export default function Inventory({ onLogout }) {
   const [items, setItems] = useState([]);
   const [formData, setFormData] = useState({ name: '', quantity: 0, description: '' });
+  const [editingId, setEditingId] = useState(null);
 
   // Fetch items from Django backend
   const fetchItems = async () => {
@@ -23,18 +24,40 @@ export default function Inventory({ onLogout }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post('items/', formData);
-      setFormData({ name: '', quantity: 0, description: '' });
+      if (editingId) {
+        await API.put(`items/${editingId}/`, formData);
+      } else {
+        await API.post('items/', formData);
+      }
+      resetForm();
       fetchItems();
     } catch (err) {
-      alert('Error creating item.');
+      alert(editingId ? 'Error updating item.' : 'Error creating item.');
     }
+  };
+
+  //Handle editing item
+  const handleEdit = (item) => {
+    setEditingId(item.id);
+    setFormData({
+      name: item.name,
+      quantity: item.quantity,
+      description: item.description || '',
+    });
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormData({ name: '', quantity: 0, description: '' });
   };
 
   // Handle deleting an item
   const handleDelete = async (id) => {
     try {
       await API.delete(`items/${id}/`);
+      if (editingId === id) {
+        resetForm();
+      }
       fetchItems();
     } catch (err) {
       alert('Error deleting item.');
@@ -47,7 +70,7 @@ export default function Inventory({ onLogout }) {
       <button onClick={onLogout}>Log Out</button>
 
       <form onSubmit={handleSubmit}>
-        <h3>Add New Item</h3>
+        <h3>{editingId ? 'Edit Item' : 'Add New Item'}</h3>
         <input
           type="text"
           placeholder="Name"
@@ -71,7 +94,12 @@ export default function Inventory({ onLogout }) {
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
         <br />
-        <button type="submit">Add Item</button>
+        <button type="submit">{editingId ? 'Update Item' : 'Add Item'}</button>
+        {editingId && (
+          <button type="button" onClick={resetForm}>
+            Cancel
+          </button>
+        )}
       </form>
 
       <h3>Items List</h3>
@@ -82,6 +110,7 @@ export default function Inventory({ onLogout }) {
           {items.map((item) => (
             <li key={item.id}>
               <strong>{item.name}</strong> — Qty: {item.quantity} | {item.description}{' '}
+              <button onClick={() => handleEdit(item)}>Edit</button>{' '}
               <button onClick={() => handleDelete(item.id)}>Delete</button>
             </li>
           ))}
