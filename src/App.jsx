@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
+import Inventory from './components/Inventory';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -12,13 +13,7 @@ function App() {
   };
 
   if (token) {
-    return (
-      <main>
-        <h2>Logged In Successfully!</h2>
-        <p>Authentication complete. </p>
-        <button onClick={handleLogout}>Log Out</button>
-      </main>
-    );
+    return <Inventory onLogout={handleLogout} />;
   }
 
   return (
