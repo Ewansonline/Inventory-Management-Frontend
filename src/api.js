@@ -1,10 +1,9 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/',
+  baseURL: 'https://laughing-winner-5gjr9vrxvgq2774g-8000.app.github.dev/api/',
 });
 
-// Automatically attach token to outgoing requests
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
