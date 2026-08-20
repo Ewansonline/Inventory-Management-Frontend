@@ -5,19 +5,29 @@ export default function Login({ onLoginSuccess }) {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await API.post('users/login/', formData);
-      localStorage.setItem('token', res.data.token);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await API.post('users/login/', formData);
+    
+    console.log('Login API Response:', res.data);
+
+    //token capture whether token or key
+    const token = res.data.token || res.data.key;
+
+    if (token) {
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(res.data));
       setError('');
       if (onLoginSuccess) onLoginSuccess(res.data);
       alert('Login successful!');
-    } catch (err) {
-      setError('Invalid username or password.');
+    } else {
+      setError('Token not found in server response.');
     }
-  };
+  } catch (err) {
+    setError('Invalid username or password.');
+  }
+};
 
   return (
     <form onSubmit={handleSubmit}>
